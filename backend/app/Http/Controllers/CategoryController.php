@@ -50,3 +50,4 @@ class CategoryController extends Controller
         return new CategoryResource($category);
     }
 }
+

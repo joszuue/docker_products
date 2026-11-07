@@ -398,3 +398,4 @@ git push -u origin main
 
 > [!NOTE]
 > El archivo `.gitignore` configurado en la raíz y subproyectos previene que credenciales reales, claves de cifrado o archivos binarios pesados sean incluidos en el repositorio público.
+

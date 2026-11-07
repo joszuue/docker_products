@@ -335,3 +335,4 @@ export default function EditProductPage({ params }: PageProps) {
     </div>
   );
 }
+

@@ -42,3 +42,4 @@ class ProductImage extends Model
         return Storage::disk('public')->url($this->path);
     }
 }
+

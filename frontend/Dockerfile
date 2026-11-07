@@ -78,3 +78,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
 
 # Ejecutar mediante next start en 0.0.0.0:3000 cumpliendo el requisito estricto
 CMD ["./node_modules/.bin/next", "start", "-p", "3000", "-H", "0.0.0.0"]
+

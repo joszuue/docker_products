@@ -33,3 +33,4 @@ fi
 
 echo "[Entrypoint] Iniciando supervisor (Nginx + PHP-FPM)..."
 exec "$@"
+

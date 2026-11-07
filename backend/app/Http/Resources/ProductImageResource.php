@@ -25,3 +25,4 @@ class ProductImageResource extends JsonResource
         ];
     }
 }
+

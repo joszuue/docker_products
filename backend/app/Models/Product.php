@@ -46,3 +46,4 @@ class Product extends Model
         return $firstImage ? $firstImage->url : null;
     }
 }
+

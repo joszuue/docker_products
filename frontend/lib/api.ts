@@ -203,3 +203,4 @@ export async function deleteProductImage(
 
   return handleResponse<{ message: string }>(res);
 }
+

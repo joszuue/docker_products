@@ -8,3 +8,4 @@ EXPOSE 3306
 
 # Configuración de codificación de caracteres predeterminada (UTF-8mb4)
 CMD ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+
