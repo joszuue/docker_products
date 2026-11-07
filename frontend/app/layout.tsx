@@ -21,7 +21,7 @@ export default function RootLayout({
         </main>
         <footer className="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
           <div className="max-w-7xl mx-auto px-4">
-            Gestor de Productos • Next.js 16 + Laravel API + MySQL • Arquitectura Docker
+            Denis Josué Vásquez Rodríguez
           </div>
         </footer>
       </body>
