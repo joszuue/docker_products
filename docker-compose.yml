@@ -1,0 +1,123 @@
+services:
+  # ============================================================================
+  # Servicio 1: Base de Datos MySQL 8.0
+  # ============================================================================
+  db:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    image: productos-db:8.0
+    container_name: productos_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_secure_password}
+      MYSQL_DATABASE: ${DB_DATABASE:-productos_db}
+      MYSQL_USER: ${DB_USERNAME:-productos_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret_db_password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    # Puerto 3306 accesible exclusivamente en la red interna de Docker (no publicado al host)
+    expose:
+      - "3306"
+    networks:
+      - productos_net
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u $${MYSQL_USER} --password=$${MYSQL_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ============================================================================
+  # Servicio 2: Backend Laravel (PHP 8.3-FPM + Nginx bajo Supervisor)
+  # ============================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: productos-backend:latest
+    container_name: productos_backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_NAME: ${APP_NAME:-"Gestor de Productos"}
+      APP_ENV: ${APP_ENV:-production}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL:-http://localhost:8000}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-productos_db}
+      DB_USERNAME: ${DB_USERNAME:-productos_user}
+      DB_PASSWORD: ${DB_PASSWORD:-secret_db_password}
+      AUTO_MIGRATE: ${AUTO_MIGRATE:-true}
+      FILESYSTEM_DISK: public
+      SESSION_DRIVER: file
+      CACHE_STORE: file
+    volumes:
+      # Persistencia de imágenes cargadas por los usuarios
+      - backend_storage:/var/www/html/storage/app/public
+    ports:
+      - "8000:8000"
+    networks:
+      - productos_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8000/up || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ============================================================================
+  # Servicio 3: Frontend Next.js (App Router, Node 20 Alpine, next start)
+  # ============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api}
+        NEXT_PUBLIC_STORAGE_URL: ${NEXT_PUBLIC_STORAGE_URL:-http://localhost:8000/storage}
+    image: productos-frontend:latest
+    container_name: productos_frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: "0.0.0.0"
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api}
+      NEXT_PUBLIC_STORAGE_URL: ${NEXT_PUBLIC_STORAGE_URL:-http://localhost:8000/storage}
+    ports:
+      - "3000:3000"
+    networks:
+      - productos_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:3000/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+# ==============================================================================
+# Volúmenes Nombrados para Persistencia Independiente
+# ==============================================================================
+volumes:
+  mysql_data:
+    name: productos_mysql_data
+  backend_storage:
+    name: productos_backend_storage
+
+# ==============================================================================
+# Red Interna Bridge
+# ==============================================================================
+networks:
+  productos_net:
+    name: productos_network
+    driver: bridge
